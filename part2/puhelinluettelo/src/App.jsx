@@ -1,15 +1,14 @@
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import Services from "./Services";
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", number: "040-123456" },
-    { name: "Ada Lovelace", number: "39-44-5323523" },
-    { name: "Dan Abramov", number: "12-43-234345" },
-    { name: "Mary Poppendieck", number: "39-23-6423122" },
-  ]);
+  const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [filter, setFilter] = useState("");
+
+  useEffect(() => {
+    Services.getAll().then((initialPersons) => setPersons(initialPersons));
+  }, []);
 
   return (
     <div>
@@ -27,12 +26,19 @@ const App = () => {
       />
 
       <h3>Numbers</h3>
-      <Persons persons={persons} filter={filter} />
+      <Persons persons={persons} setPersons={setPersons} filter={filter} />
     </div>
   );
 };
 
-const PersonForm = ({ newName, setNewName, newNumber, setNewNumber }) => {
+const PersonForm = ({
+  newName,
+  setNewName,
+  newNumber,
+  setNewNumber,
+  persons,
+  setPersons,
+}) => {
   return (
     <form>
       <div>
@@ -54,12 +60,33 @@ const PersonForm = ({ newName, setNewName, newNumber, setNewNumber }) => {
             event.preventDefault();
 
             if (persons.some((person) => person.name === newName)) {
-              alert(`${newName} is already added to phonebook`);
+              window.confirm(
+                `${newName} is already added to phonebook, replace the old number with a new one?`
+              )
+                ? Services.update(
+                    persons.find((person) => person.name === newName).id,
+                    { name: newName, number: newNumber }
+                  ).then((returnedPerson) => {
+                    setPersons(
+                      persons.map((person) =>
+                        person.id !== returnedPerson.id
+                          ? person
+                          : returnedPerson
+                      )
+                    );
+                    setNewName("");
+                    setNewNumber("");
+                  })
+                : console.log("Cancelled");
               return;
             }
-            setPersons(persons.concat({ name: newName, number: newNumber }));
-            setNewName("");
-            setNewNumber("");
+            Services.create({ name: newName, number: newNumber }).then(
+              (returnedPerson) => {
+                setPersons(persons.concat(returnedPerson));
+                setNewName("");
+                setNewNumber("");
+              }
+            );
           }}
         >
           add
@@ -69,13 +96,34 @@ const PersonForm = ({ newName, setNewName, newNumber, setNewNumber }) => {
   );
 };
 
-const Persons = ({ persons, filter }) => {
+const DeleteButton = ({ person, persons, setPersons }) => {
+  return (
+    <button
+      onClick={() => {
+        if (window.confirm(`Delete ${person.name}?`)) {
+          Services.deletePerson(person.id).then(() => {
+            setPersons(persons.filter((p) => p.id !== person.id));
+          });
+        }
+      }}
+    >
+      delete
+    </button>
+  );
+};
+
+const Persons = ({ persons, setPersons, filter }) => {
   return (
     <>
       {filter === "" // if filter is empty, show all persons
         ? persons.map((person) => (
             <div key={person.name}>
-              {person.name} {person.number}
+              {person.name} {person.number}{" "}
+              <DeleteButton
+                person={person}
+                persons={persons}
+                setPersons={setPersons}
+              />
             </div>
           ))
         : // if filter is not empty, show only persons whose name contains the filter string
@@ -85,7 +133,12 @@ const Persons = ({ persons, filter }) => {
             )
             .map((person) => (
               <div key={person.name}>
-                {person.name} {person.number}
+                {person.name} {person.number}{" "}
+                <DeleteButton
+                  person={person}
+                  persons={persons}
+                  setPersons={setPersons}
+                />
               </div>
             ))}
     </>
