@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import Services from "./Services";
+import "./index.css";
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [filter, setFilter] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState({ msg: "", cls: "" });
 
   useEffect(() => {
     Services.getAll().then((initialPersons) => setPersons(initialPersons));
@@ -30,7 +31,12 @@ const App = () => {
       />
 
       <h3>Numbers</h3>
-      <Persons persons={persons} setPersons={setPersons} filter={filter} />
+      <Persons
+        persons={persons}
+        setPersons={setPersons}
+        filter={filter}
+        setMessage={setMessage}
+      />
     </div>
   );
 };
@@ -40,7 +46,7 @@ const Notification = ({ message }) => {
     return null;
   }
 
-  return <div className="error">{message}</div>;
+  return <div className={message.cls}>{message.msg}</div>;
 };
 
 const PersonForm = ({
@@ -96,9 +102,12 @@ const PersonForm = ({
             Services.create({ name: newName, number: newNumber }).then(
               (returnedPerson) => {
                 setPersons(persons.concat(returnedPerson));
-                setMessage(`Added ${newName}`);
                 setNewName("");
                 setNewNumber("");
+                setMessage({ msg: `Added ${newName}`, cls: "success" });
+                setTimeout(() => {
+                  setMessage({ msg: null, cls: null });
+                }, 5000);
               }
             );
           }}
@@ -110,14 +119,29 @@ const PersonForm = ({
   );
 };
 
-const DeleteButton = ({ person, persons, setPersons }) => {
+const DeleteButton = ({ person, persons, setPersons, setMessage }) => {
   return (
     <button
       onClick={() => {
         if (window.confirm(`Delete ${person.name}?`)) {
-          Services.deletePerson(person.id).then(() => {
-            setPersons(persons.filter((p) => p.id !== person.id));
-          });
+          Services.deletePerson(person.id)
+            .then(() => {
+              setPersons(persons.filter((p) => p.id !== person.id));
+              setMessage({ msg: `Deleted ${person.name}`, cls: "success" });
+              setTimeout(() => {
+                setMessage({ msg: null, cls: null });
+              }, 5000);
+            })
+            .catch((error) => {
+              setPersons(persons.filter((p) => p.id !== person.id));
+              setMessage({
+                msg: `Information of ${person.name} has already been removed from server`,
+                cls: "error",
+              });
+              setTimeout(() => {
+                setMessage({ msg: null, cls: null });
+              }, 5000);
+            });
         }
       }}
     >
@@ -126,7 +150,7 @@ const DeleteButton = ({ person, persons, setPersons }) => {
   );
 };
 
-const Persons = ({ persons, setPersons, filter }) => {
+const Persons = ({ persons, setPersons, filter, setMessage }) => {
   return (
     <>
       {filter === "" // if filter is empty, show all persons
@@ -137,6 +161,7 @@ const Persons = ({ persons, setPersons, filter }) => {
                 person={person}
                 persons={persons}
                 setPersons={setPersons}
+                setMessage={setMessage}
               />
             </div>
           ))
@@ -152,6 +177,7 @@ const Persons = ({ persons, setPersons, filter }) => {
                   person={person}
                   persons={persons}
                   setPersons={setPersons}
+                  setMessage={setMessage}
                 />
               </div>
             ))}
