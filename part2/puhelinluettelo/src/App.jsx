@@ -5,6 +5,7 @@ const App = () => {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [filter, setFilter] = useState("");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     Services.getAll().then((initialPersons) => setPersons(initialPersons));
@@ -13,6 +14,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={message} />
+
       <Filter filter={filter} setFilter={setFilter} />
 
       <h3>Add a new</h3>
@@ -23,12 +26,21 @@ const App = () => {
         setNewNumber={setNewNumber}
         persons={persons}
         setPersons={setPersons}
+        setMessage={setMessage}
       />
 
       <h3>Numbers</h3>
       <Persons persons={persons} setPersons={setPersons} filter={filter} />
     </div>
   );
+};
+
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null;
+  }
+
+  return <div className="error">{message}</div>;
 };
 
 const PersonForm = ({
@@ -38,6 +50,7 @@ const PersonForm = ({
   setNewNumber,
   persons,
   setPersons,
+  setMessage,
 }) => {
   return (
     <form>
@@ -83,6 +96,7 @@ const PersonForm = ({
             Services.create({ name: newName, number: newNumber }).then(
               (returnedPerson) => {
                 setPersons(persons.concat(returnedPerson));
+                setMessage(`Added ${newName}`);
                 setNewName("");
                 setNewNumber("");
               }

@@ -1,5 +1,5 @@
 {
-  "name": "puhelinluettelo",
+  "name": "maiden-tiedot",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,16 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "server": "json-server -p3001 --watch db.json"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "axios": "^1.4.0",
+    "dotenv": "^16.3.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "prettier": "^2.8.8",
     "@types/react": "^18.0.37",
     "@types/react-dom": "^18.0.11",
     "@vitejs/plugin-react": "^4.0.0",
@@ -24,7 +22,11 @@
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.3.4",
+    "prettier": "^2.8.8",
     "vite": "^4.3.9"
   },
-  "eslintIgnore": ["src/*.js", "src/*.jsx"]
+  "eslintIgnore": [
+    "src/*.js",
+    "src/*.jsx"
+  ]
 }
