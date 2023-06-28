@@ -10,10 +10,13 @@ const App = () => {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [filter, setFilter] = useState("");
+  const [message, setMessage] = useState("");
 
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={message} />
+
       <Filter filter={filter} setFilter={setFilter} />
 
       <h3>Add a new</h3>
@@ -24,6 +27,7 @@ const App = () => {
         setNewNumber={setNewNumber}
         persons={persons}
         setPersons={setPersons}
+        setMessage={setMessage}
       />
 
       <h3>Numbers</h3>
@@ -32,7 +36,23 @@ const App = () => {
   );
 };
 
-const PersonForm = ({ newName, setNewName, newNumber, setNewNumber }) => {
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null;
+  }
+
+  return <div className="error">{message}</div>;
+};
+
+const PersonForm = ({
+  newName,
+  setNewName,
+  newNumber,
+  setNewNumber,
+  persons,
+  setPersons,
+  setMessage,
+}) => {
   return (
     <form>
       <div>
@@ -54,10 +74,12 @@ const PersonForm = ({ newName, setNewName, newNumber, setNewNumber }) => {
             event.preventDefault();
 
             if (persons.some((person) => person.name === newName)) {
-              alert(`${newName} is already added to phonebook`);
+              setMessage(`${newName} is already added to phonebook`);
               return;
             }
+
             setPersons(persons.concat({ name: newName, number: newNumber }));
+            setMessage(`Added ${newName}`);
             setNewName("");
             setNewNumber("");
           }}
